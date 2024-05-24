@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"time"
 )
 
 func rastrigin(x []float64) float64 {
@@ -20,7 +19,6 @@ var Min = -5.12
 var Max = 5.12
 
 func simulatedAnnealing(dimensions int, maxIterations int, initialTemp float64, minTemp float64, coolingRate float64, maxCount int, coolingScheme string) []float64 {
-	rand.Seed(time.Now().UnixNano())
 
 	currentSolution := make([]float64, dimensions)
 	for i := range currentSolution {
@@ -101,7 +99,23 @@ func main() {
 
 	coolingSchemes := []string{"geometric", "linear", "exponential", "logarithmic", "harmonic"}
 
+	bestResults := make(map[string]float64)
+	bestParams := make(map[string]struct {
+		initialTemp float64
+		minTemp     float64
+		coolingRate float64
+		maxCount    int
+	})
+
 	for _, scheme := range coolingSchemes {
+		bestResult := math.Inf(1)
+		var bestParam struct {
+			initialTemp float64
+			minTemp     float64
+			coolingRate float64
+			maxCount    int
+		}
+
 		for initTemp := 500.0; initTemp <= 1500.0; initTemp += 100.0 {
 			for minTemp := 0.1; minTemp <= 1.0; minTemp += 0.1 {
 				for coolRate := 0.8; coolRate <= 0.99; coolRate += 0.05 {
@@ -114,9 +128,33 @@ func main() {
 						result := runExperiment(dimensions, maxIterations, initTemp, minTemp, coolRate, maxCount, scheme)
 						fmt.Printf("| %s | %.2f | %.2f | %.2f | %d | %.4f |\n", scheme, initTemp, minTemp, coolRate, maxCount, result)
 
+						if result < bestResult {
+							bestResult = result
+							bestParam = struct {
+								initialTemp float64
+								minTemp     float64
+								coolingRate float64
+								maxCount    int
+							}{initTemp, minTemp, coolRate, maxCount}
+						}
 					}
 				}
 			}
+		}
+
+		bestResults[scheme] = bestResult
+		bestParams[scheme] = bestParam
+	}
+
+	fmt.Println("\n## Best parameters for each cooling scheme")
+	fmt.Println("| Cooling scheme | Initial temperature | Min temperature | Cooling rate | Max iterations at temperature level | Result |")
+	fmt.Println("|-|-|-|-|-|-|")
+	for scheme, result := range bestResults {
+		param := bestParams[scheme]
+		if scheme == "exponential" || scheme == "logarithmic" || scheme == "harmonic" {
+			fmt.Printf("| %s | %.2f | %.2f | None | %d | %.4f |\n", scheme, param.initialTemp, param.minTemp, param.maxCount, result)
+		} else {
+			fmt.Printf("| %s | %.2f | %.2f | %.2f | %d | %.4f |\n", scheme, param.initialTemp, param.minTemp, param.coolingRate, param.maxCount, result)
 		}
 	}
 }
