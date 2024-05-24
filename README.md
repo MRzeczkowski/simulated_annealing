@@ -31,4 +31,9 @@ Best parameters for each cooling scheme
 Note that logarithmic, harmonic and exponential cooling schemes don't have a configurable cooling rate.
 
 ### Conclusion:
-The best cooling schemes I found in my experiments is the harmonic.
+The best cooling scheme found in my experiments is the harmonic scheme, which produced the lowest average result for the Rastrigin function. This indicates that the harmonic cooling schedule is particularly effective for this type of optimization problem.
+
+Other notable observations:
+- The harmonic scheme had the highest initial temperature but required fewer iterations at each temperature level, indicating faster convergence.
+- The geometric and exponential schemes also performed well, achieving relatively low average results.
+- The logarithmic and linear schemes had higher average results, suggesting they may be less effective for this specific optimization problem.
