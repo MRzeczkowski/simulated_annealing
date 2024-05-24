@@ -15,6 +15,10 @@ func rastrigin(x []float64) float64 {
 	return sum
 }
 
+func cauchyRandom(x0 float64, gamma float64) float64 {
+	return x0 + gamma*math.Tan((rand.Float64()-0.5)*math.Pi)
+}
+
 var Min = -5.12
 var Max = 5.12
 
@@ -37,7 +41,7 @@ func simulatedAnnealing(dimensions int, maxIterations int, initialTemp float64, 
 		for i := 0; i < maxCount; i++ {
 			newSolution := make([]float64, dimensions)
 			for j := range newSolution {
-				newSolution[j] = currentSolution[j] + (rand.Float64()*2 - 1)
+				newSolution[j] = cauchyRandom(currentSolution[j], 0.05)
 			}
 
 			newEnergy := rastrigin(newSolution)
@@ -88,7 +92,7 @@ func runExperiment(dimensions int, maxIterations int, initialTemp float64, minTe
 
 func main() {
 	dimensions := 3
-	maxIterations := 10000
+	maxIterations := 1000
 	numberOfTests := 10
 
 	fmt.Println("Simulation Parameters:")
