@@ -88,14 +88,14 @@ func runExperiment(dimensions int, maxIterations int, initialTemp float64, minTe
 
 func main() {
 	dimensions := 3
-	maxIterations := 1000
+	maxIterations := 10000
+	numberOfTests := 10
 
-	fmt.Printf("## Experiment Parameters\n")
-	fmt.Printf("- Dimensions: %d\n", dimensions)
-	fmt.Printf("- Max Iterations: %d\n\n", maxIterations)
-
-	fmt.Println("| Cooling scheme | Initial temperature | Min temperature | Cooling rate | Max iterations at temperature level | Result |")
-	fmt.Println("|-|-|-|-|-|-|")
+	fmt.Println("Simulation Parameters:")
+	fmt.Println("- Number of dimensions:", dimensions)
+	fmt.Println("- Max iterations per test:", maxIterations)
+	fmt.Println("- Number of tests per cooling scheme:", numberOfTests)
+	fmt.Println()
 
 	coolingSchemes := []string{"geometric", "linear", "exponential", "logarithmic", "harmonic"}
 
@@ -108,7 +108,7 @@ func main() {
 	})
 
 	for _, scheme := range coolingSchemes {
-		bestResult := math.Inf(1)
+		bestAverageResult := math.Inf(1)
 		var bestParam struct {
 			initialTemp float64
 			minTemp     float64
@@ -116,20 +116,29 @@ func main() {
 			maxCount    int
 		}
 
+		// fmt.Println("| Cooling scheme | Initial temperature | Min temperature | Cooling rate | Max iterations at temperature level | Average result |")
+		// fmt.Println("|-|-|-|-|-|-|")
+
 		for initTemp := 500.0; initTemp <= 1500.0; initTemp += 100.0 {
 			for minTemp := 0.1; minTemp <= 1.0; minTemp += 0.1 {
 				for coolRate := 0.8; coolRate <= 0.99; coolRate += 0.05 {
-					for maxCount := 50; maxCount <= 200; maxCount += 50 {
+					for maxCount := 25; maxCount <= 200; maxCount += 25 {
 						// Skip cooling rate changes for schemes where it is not applicable
 						if (scheme == "exponential" || scheme == "logarithmic" || scheme == "harmonic") && coolRate != 0.8 {
 							continue
 						}
 
-						result := runExperiment(dimensions, maxIterations, initTemp, minTemp, coolRate, maxCount, scheme)
-						fmt.Printf("| %s | %.2f | %.2f | %.2f | %d | %.4f |\n", scheme, initTemp, minTemp, coolRate, maxCount, result)
+						sumResults := 0.0
 
-						if result < bestResult {
-							bestResult = result
+						for i := 0; i < numberOfTests; i++ {
+							sumResults += runExperiment(dimensions, maxIterations, initTemp, minTemp, coolRate, maxCount, scheme)
+						}
+
+						averageResult := sumResults / float64(numberOfTests)
+						// fmt.Printf("| %s | %.2f | %.2f | %.2f | %d | %.4f |\n", scheme, initTemp, minTemp, coolRate, maxCount, result)
+
+						if averageResult < bestAverageResult {
+							bestAverageResult = averageResult
 							bestParam = struct {
 								initialTemp float64
 								minTemp     float64
@@ -142,12 +151,12 @@ func main() {
 			}
 		}
 
-		bestResults[scheme] = bestResult
+		bestResults[scheme] = bestAverageResult
 		bestParams[scheme] = bestParam
 	}
 
-	fmt.Println("\n## Best parameters for each cooling scheme")
-	fmt.Println("| Cooling scheme | Initial temperature | Min temperature | Cooling rate | Max iterations at temperature level | Result |")
+	fmt.Println("Best parameters for each cooling scheme")
+	fmt.Println("| Cooling scheme | Initial temperature | Min temperature | Cooling rate | Max iterations at temperature level | Average result |")
 	fmt.Println("|-|-|-|-|-|-|")
 	for scheme, result := range bestResults {
 		param := bestParams[scheme]
